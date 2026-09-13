@@ -48,6 +48,7 @@ def create_ngrams(data, n, splitter, tokenizer):
 
             # TODO: tokenize the words in the sentence
             # name the list of tokens as 'tokens'
+            tokens = tokenizer.tokenize(sentence)
 
             # Your code ends here
 
@@ -66,6 +67,11 @@ def create_ngrams(data, n, splitter, tokenizer):
                 #   and its occurrence count as values
                 # - 'next_word_candidates' is a dictionary with tuple of the context
                 #   (i.e. the (n-1)-grams) as keys and a set of possible next words as values
+                ngram = tuple(tokens[idx:idx + n])
+                context = ngram[:-1]
+                ngrams[ngram] += 1
+                ngram_context[context] += 1
+                next_word_candidates[context].add(ngram[-1])
 
                 # Your code ends here
 
@@ -86,6 +92,7 @@ def create_ngrams(data, n, splitter, tokenizer):
         for nw in next_words:
             # TODO: compute the estimated probability of the next word given the context
             # hint: use the counters 'ngrams' and 'ngram_context' you have created above
+            scores.append(ngrams[context + (nw,)] / ngram_context[context])
 
             # Your code ends here
 
@@ -118,6 +125,21 @@ def plot_next_word_prob(word_scores, word_candidates, context, top=10, save_path
     # - word_candidates is a dictionary with tuple of the context as keys and a list of possible next words as values (the sorted_next_word_candidates in create_ngrams function)
     # - for a given context, elements in word_scores[context] and word_candidates[context] have one-to-one correspondence
     # - context is a tuple of words
+    probs = np.asarray(word_scores[context])
+    candidates = word_candidates[context]
+    order = np.argsort(-probs)[:top]
+    top_words = [candidates[i] for i in order]
+    top_probs = probs[order]
+
+    plt.clf()
+    plt.bar(np.arange(len(top_words)), top_probs)
+    plt.xticks(np.arange(len(top_words)), top_words, rotation=45, ha='right')
+    plt.xlabel('Next token')
+    plt.ylabel('Estimated probability')
+    plt.title(f'Top {len(top_words)} next tokens after "{" ".join(context)}"')
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path)
 
 
     # Your code ends here
